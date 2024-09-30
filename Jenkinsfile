@@ -15,11 +15,26 @@ pipeline {
                 git url: "${GITHUB_REPO}", branch: 'main'
             }            
         }       
-        stage('Build') {   
+        stage('Docker Build') {   
             steps {
                 echo 'Building the app...'
+                sh 'docker build -t galaataman/feedback-app:pipeline-test'
                 echo 'Build successful.'
             }    
-        }     
+        }
+        stage('Docker Push') {
+            steps {
+                echo 'Pushing the image to Docker Hub...'
+                sh 'docker push galaataman/feedback-app:pipeline-test'
+                echo 'Push successful.'
+            }
+        }
+        stage('Kubernetes Deploy') {
+            steps {
+                echo 'Deploying to kubernetes cluster...'
+                sh 'kubectl apply -f kubernetes/api-deployment.yaml'
+                echo 'Deployment successful.'
+            }
+        }
     }   
 }
