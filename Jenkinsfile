@@ -2,36 +2,7 @@ pipeline {
     agent {
         kubernetes {
             label 'jenkins-docker-agent'
-            defaultContainer 'jnlp'
-            yaml """ 
-apiVersion: v1
-kind: Pod
-metadata:
-  labels:
-    jenkins: slave
-spec:
-  containers:
-  - name: docker
-    image: docker:latest
-    resources:
-      requests:
-        memory: "128Mi"
-        cpu: "250m"
-      limits:
-        memory: "128Mi"
-        cpu: "250m"
-    command:
-    - cat
-    tty: true
-    volumeMounts:
-    - name: docker-socket
-      mountPath: /var/run/docker.sock
-  volumes:
-  - hostPath:
-      path: /var/run/docker.sock
-    name: docker-socket            
-"""
-
+            yamlFile 'kubernetes_jenkins/jenkins-pod-template.yaml'
         }
     }
 
@@ -41,6 +12,8 @@ spec:
     
     environment {
         GITHUB_REPO = 'https://github.com/BILLINGEVA/feedback-app.git'
+        DOCKER_IMAGE = 'evabilling/feedback-app:pipeline-test'
+        DOCKER_CREDENTIALS_ID = 'dockerhub-token'
     }
     
     stages {        
@@ -53,7 +26,7 @@ spec:
             steps {
                 echo 'Building the app...'
                 container('docker') {
-                    sh 'docker build -t evabilling/feedback-app:pipeline-test'
+                    sh 'docker build -t $DOCKER_IMAGE .'
                 }
                 echo 'Build successful.'
             }    
@@ -63,11 +36,10 @@ spec:
                 echo 'Pushing the image to Docker Hub...'
                 container('docker') {
                     script {
-                        docker.withRegistry('', 'Dockerhub-token') {}
-                        sh 'docker push evabilling/feedback-app:pipeline-test'
-
-                    }
-                    
+                        docker.withRegistry('', "${DOCKER_CREDENTIALS_ID}") {
+                            sh 'docker push $DOCKER_IMAGE'
+                        }
+                    }  
                 }
                 echo 'Push successful.'
             }
@@ -75,7 +47,9 @@ spec:
         stage('Kubernetes Deploy') {
             steps {
                 echo 'Deploying to kubernetes cluster...'
-                sh 'kubectl apply -f kubernetes/api-deployment.yaml'
+                container('kubectl') {
+                    sh 'kubectl apply -f kubernetes/api-deployment.yaml'
+                } 
                 echo 'Deployment successful.'
             }
         }
