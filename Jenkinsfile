@@ -20,6 +20,9 @@ spec:
       limits:
         memory: "128Mi"
         cpu: "250m"
+    command:
+    - cat
+    tty: true
     volumeMounts:
     - name: docker-socket
       mountPath: /var/run/docker.sock
@@ -37,7 +40,7 @@ spec:
     }
     
     environment {
-        GITHUB_REPO = 'https://github.com/atamankina/feedback-app.git'
+        GITHUB_REPO = 'https://github.com/BILLINGEVA/feedback-app.git'
     }
     
     stages {        
@@ -50,7 +53,7 @@ spec:
             steps {
                 echo 'Building the app...'
                 container('docker') {
-                    sh 'docker build -t galaataman/feedback-app:pipeline-test'
+                    sh 'docker build -t evabilling/feedback-app:pipeline-test'
                 }
                 echo 'Build successful.'
             }    
@@ -59,7 +62,12 @@ spec:
             steps {
                 echo 'Pushing the image to Docker Hub...'
                 container('docker') {
-                    sh 'docker push galaataman/feedback-app:pipeline-test'
+                    script {
+                        docker.withRegistry('', 'Dockerhub-token') {}
+                        sh 'docker push evabilling/feedback-app:pipeline-test'
+
+                    }
+                    
                 }
                 echo 'Push successful.'
             }
