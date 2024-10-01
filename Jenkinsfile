@@ -45,7 +45,9 @@ pipeline {
         stage('Kubernetes Deploy') {
             steps {
                 echo 'Deploying to kubernetes cluster...'
-                sh 'kubectl apply -f kubernetes/api-deployment.yaml'
+                container('kubectl') {
+                    sh 'kubectl apply -f kubernetes/api-deployment.yaml'
+                } 
                 echo 'Deployment successful.'
             }
         }
