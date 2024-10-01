@@ -1,6 +1,7 @@
 apiVersion: v1
 kind: Pod
 metadata:
+  name: jenkins-slave-pod
   labels:
     jenkins: slave
 spec:
@@ -37,3 +38,4 @@ spec:
   - hostPath:
       path: /var/run/docker.sock
     name: docker-socket
+   

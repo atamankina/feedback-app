@@ -13,7 +13,7 @@ pipeline {
     environment {
         GITHUB_REPO = 'https://github.com/BILLINGEVA/feedback-app.git'
         DOCKER_IMAGE = 'evabilling/feedback-app:pipeline-test'
-        DOCKER_CREDENTIALS_ID = 'dockerhub-token'
+        DOCKER_CREDENTIALS_ID = 'Dockerhub-token'
     }
     
     stages {        
