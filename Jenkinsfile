@@ -2,7 +2,6 @@ pipeline {
     agent {
         kubernetes {
             label 'jenkins-docker-agent'
-            defaultContainer 'jnlp'
             yamlFile 'kubernetes_jenkins/jenkins-pod-template.yaml'
         }
     }
