@@ -44,7 +44,19 @@ pipeline {
                 echo 'Push successful.'
             }
         }
-        stage('Kubernetes Deploy') {
+        stage('Kubernetes Deploy Dependencies') {
+            steps {
+                echo 'Deploying to kubernetes cluster...'
+                container('kubectl') {
+                    sh 'kubectl apply -f kubernetes/secret.yaml'
+                    sh 'kubectl apply -f kubernetes/configmap.yaml'
+                    sh 'kubectl apply -f kubernetes/database-volume.yaml'
+                    sh 'kubectl apply -f kubernetes/database-deployment.yaml'
+                } 
+                echo 'Deployment successful.'
+            }
+        }
+        stage('Kubernetes Deploy API') {
             steps {
                 echo 'Deploying to kubernetes cluster...'
                 container('kubectl') {
