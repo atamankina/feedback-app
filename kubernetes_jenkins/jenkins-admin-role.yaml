@@ -1,5 +1,5 @@
 apiVersion: rbac.authorization.k8s.io/v1
-kind: Role
+kind: ClusterRole
 metadata:
   name: jenkins-sa-admin
   namespace: default
@@ -10,7 +10,7 @@ rules:
 
 ---
 apiVersion: rbac.authorization.k8s.io/v1
-kind: RoleBinding
+kind: ClusterRoleBinding
 metadata:
   name: jenkins-sa-admin-binding
   namespace: default
@@ -19,6 +19,6 @@ subjects:
   name: jenkins-sa
   namespace: default
 roleRef:
-  kind: Role 
+  kind: ClusterRole 
   name: jenkins-sa-admin
   apiGroup: rbac.authorization.k8s.io
