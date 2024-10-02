@@ -95,7 +95,7 @@ const getAllFeedback = () => {
 
 // DELETE /feedback/:title
 const deleteFeedback = () => {
-    const response = http.delete(`${BASE_URL}/feedback/Test Feedback`);
+    const response = http.del(`${BASE_URL}/feedback/Test Feedback`);
 
     check(response, {
         'DELETE /feedback/:title status code 200 (OK)': (res) => res.status === 200,
@@ -105,7 +105,7 @@ const deleteFeedback = () => {
 
 // DELETE /feedback/:title not found
 const deleteNonExistentFeedback = () => {
-    const response = http.delete(`${BASE_URL}/feedback/NonExistentFeedback`);
+    const response = http.del(`${BASE_URL}/feedback/NonExistentFeedback`);
 
     check(response, {
         'DELETE /feedback/:title status code 404 (Not Found)': (res) => res.status === 404,
@@ -113,3 +113,14 @@ const deleteNonExistentFeedback = () => {
     });
 };
 
+
+export default function () {
+    createFeedback();
+    createFeedbackNoData();
+    createFeedbackNoTitle();
+    createFeedbackNoText();
+    createFeedbackInvalidData();
+    getAllFeedback();
+    deleteFeedback();
+    deleteNonExistentFeedback();
+}
