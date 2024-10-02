@@ -113,3 +113,14 @@ const deleteNonExistentFeedback = () => {
     });
 };
 
+
+export default function () {
+    createFeedback();
+    createFeedbackNoData();
+    createFeedbackNoTitle();
+    createFeedbackNoText();
+    createFeedbackInvalidData();
+    getAllFeedback();
+    deleteFeedback();
+    deleteNonExistentFeedback();
+}
