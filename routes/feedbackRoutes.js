@@ -10,7 +10,7 @@ router.post('/feedback', feedbackValidation, async (req, res) => {
     try {
         const { title, text } = req.body;
         const newFeedback = await addFeedback(title, text);
-        sendSuccess(res, newFeedback, 'Feedback added successfully');
+        res.status(201).json({ message: 'Feedback added successfully', data: newFeedback });
     } catch (error) {
         sendError(res, 'An error occurred while adding feedback.');
     }
