@@ -1,4 +1,5 @@
-import { Pool } from 'pg';
+import pkg from 'pg';
+const { Pool } = pkg; 
 
 // Erstellen einer neuen Pool-Verbindung
 const pool = new Pool({

@@ -65,6 +65,15 @@ pipeline {
                 echo 'Deployment successful.'
             }
         }
+        stage('Restart Kubernetes Pods') {
+            steps {
+                echo 'Restarting Kubernetes pods to pull the new image...'
+                container('kubectl') {
+                    sh 'kubectl rollout restart deployment feedback-app-api'
+                }
+                echo 'Pods restarted successfully.'
+            }
+        }
         stage('Integration Tests') {
             steps {
                 echo 'Running integration tests...'
