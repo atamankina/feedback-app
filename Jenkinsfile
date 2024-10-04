@@ -47,7 +47,7 @@ pipeline {
                 echo 'Docker image pushed successfully.'
             }
         }
-        stage('Kubernetes Deploy Dependencies') {
+        stage('Kubernetes Deploy App Dependencies') {
             steps {
                 echo 'Deploying API dependencies to kubernetes cluster...'
                 container('kubectl') {
@@ -59,7 +59,7 @@ pipeline {
                 echo 'Deployment successful.'
             }
         }
-        stage('Delete Previous Deployment') {
+        stage('Kubernetes Deploy App') {
             steps {
                 echo 'Deleting previous Kubernetes deployment...'
                 container('kubectl') {
@@ -68,11 +68,6 @@ pipeline {
                     '''
                 } 
                 echo 'Previous Kubernetes deployment deleted successfully.'
-            }
-        }
-
-        stage('Create New Deployment') {
-            steps {
                 echo 'Creating new Kubernetes deployment...'
                 container('kubectl') {
                     script {
@@ -88,7 +83,39 @@ pipeline {
                 echo 'New Kubernetes deployment created successfully.'
             }
         }
-        stage('Integration Tests') {
+        stage('Check App Status') {
+            steps {
+                echo 'Waiting for the application to become reachable...'
+                container('kubectl') {
+                    script {
+                        def retries = 30
+                        def delay = 10
+                        def url = "http://feedback-app-api-service:3000/feedback" 
+                        
+                        for (int i = 0; i < retries; i++) {
+                            def result = sh(script: "curl -s -o /dev/null -w '%{http_code}' $url", returnStatus: true)
+                            
+                            if (result == 0) {
+                                def http_code = sh(script: "curl -s -o /dev/null -w '%{http_code}' $url", returnStdout: true).trim()
+                                echo "App health check attempt ${i + 1}: HTTP $http_code"
+                                if (http_code == '200') {
+                                    echo 'App is reachable!'
+                                    break
+                                }
+                            } else {
+                                echo "App is not reachable yet (attempt ${i + 1}). Retrying in ${delay} seconds..."
+                            }
+                            
+                            if (i == retries - 1) {
+                                error 'App is still unreachable after multiple attempts.'
+                            }
+                            sleep delay
+                        }
+                    }
+                }
+            }
+        }
+        stage('Run Integration Tests') {
             steps {
                 echo 'Running integration tests...'
                 container('k6') {

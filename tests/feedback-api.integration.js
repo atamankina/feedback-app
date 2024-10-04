@@ -32,8 +32,8 @@ const createFeedback = () => {
     const response = http.post(`${BASE_URL}/feedback`, JSON.stringify(payload), { headers });
 
     addCheck(response, {
-        'POST /feedback valid data: status code 200 (OK)': 
-            (res) => res.status === 200,
+        'POST /feedback valid data: status code 201 (Created)': 
+            (res) => res.status === 201,
         'POST /feedback response has message': 
             (res) => res.json().message === 'Feedback added successfully',
         'POST /feedback created data matches sent data': (res) => 
