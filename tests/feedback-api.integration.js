@@ -5,19 +5,28 @@ const BASE_URL = __ENV.BASE_URL || 'http://localhost:3000';
 
 // POST /feedback 
 const createFeedback = () => {
-    const payload = JSON.stringify({
+    const payload = {
         title: 'Test Feedback',
         text: 'This is a test feedback created by integration tests.'
-    });
+    };
 
     const headers = { 'Content-Type': 'application/json' };
 
-    const response = http.post(`${BASE_URL}/feedback`, payload, { headers });
+    const response = http.post(`${BASE_URL}/feedback`, JSON.stringify(payload), { headers });
 
     check(response, {
-        'POST /feedback valid data: status code 201 (Created)': (res) => res.status === 201,
-        'POST /feedback response has message': (res) => res.json('message') === 'Feedback added successfully'
+        'POST /feedback valid data: status code 200 (OK)': 
+            (res) => res.status === 200,
+        'POST /feedback response has message': 
+            (res) => res.json().message === 'Feedback added successfully',
+        'POST /feedback created data matches sent data': (res) => 
+            res.json().data.title === payload.title && 
+                res.json().data.text === payload.text
+             
     });
+
+    // Return the ID if the response structure includes a data object
+    return response.json().data ? response.json().data.id : null;
 };
 
 // POST /feedback empty body
@@ -29,8 +38,10 @@ const createFeedbackNoData = () => {
     const response = http.post(`${BASE_URL}/feedback`, payload, { headers });
 
     check(response, {
-        'POST /feedback missing data: status code 400 (Bad Request)': (res) => res.status === 400,
-        'POST /feedback error message for missing data': (res) => res.json('errors')[0].msg === 'Title is required'
+        'POST /feedback missing data: status code 400 (Bad Request)': 
+            (res) => res.status === 400,
+        'POST /feedback error message for missing data': 
+            (res) => res.json('errors')[0].msg === 'Title is required'
     });
 };
 
@@ -45,8 +56,10 @@ const createFeedbackNoTitle = () => {
     const response = http.post(`${BASE_URL}/feedback`, payload, { headers });
 
     check(response, {
-        'POST /feedback missing title: status code 400 (Bad Request)': (res) => res.status === 400,
-        'POST /feedback error message for missing title': (res) => res.json('errors')[0].msg === 'Title is required'
+        'POST /feedback missing title: status code 400 (Bad Request)': 
+            (res) => res.status === 400,
+        'POST /feedback error message for missing title': 
+            (res) => res.json('errors')[0].msg === 'Title is required'
     });
 };
 
@@ -61,8 +74,10 @@ const createFeedbackNoText = () => {
     const response = http.post(`${BASE_URL}/feedback`, payload, { headers });
 
     check(response, {
-        'POST /feedback missing text: status code 400 (Bad Request)': (res) => res.status === 400,
-        'POST /feedback error message for missing text': (res) => res.json('errors')[0].msg === 'Text is required'
+        'POST /feedback missing text: status code 400 (Bad Request)': 
+            (res) => res.status === 400,
+        'POST /feedback error message for missing text': 
+            (res) => res.json('errors')[0].msg === 'Text is required'
     });
 };
 
@@ -78,8 +93,10 @@ const createFeedbackInvalidData = () => {
     const response = http.post(`${BASE_URL}/feedback`, payload, { headers });
 
     check(response, {
-        'POST /feedback invalid data: status code 400 (Bad Request)': (res) => res.status === 400,
-        'POST /feedback error message for invalid data': (res) => res.json('errors')[0].msg === 'Title is required'
+        'POST /feedback invalid data: status code 400 (Bad Request)': 
+            (res) => res.status === 400,
+        'POST /feedback error message for invalid data': 
+            (res) => res.json('errors')[0].msg === 'Title is required'
     });
 };
 
@@ -88,39 +105,45 @@ const getAllFeedback = () => {
     const response = http.get(`${BASE_URL}/feedback`);
 
     check(response, {
-        'GET /feedback status code 200 (OK)': (res) => res.status === 200,
-        'GET /feedback response contains an array': (res) => Array.isArray(res.json())
+        'GET /feedback status code 200 (OK)': 
+            (res) => res.status === 200,
+        'GET /feedback response contains an array': 
+            (res) => Array.isArray(res.json().data)
     });
 };
 
 // DELETE /feedback/:id
-const deleteFeedback = () => {
-    const response = http.del(`${BASE_URL}/feedback/1`);
+const deleteFeedback = (id) => {
+    const response = http.del(`${BASE_URL}/feedback/${id}`);
 
     check(response, {
-        'DELETE /feedback/:id status code 200 (OK)': (res) => res.status === 200,
-        'DELETE /feedback/:id response has message': (res) => res.json('message') === 'Feedback deleted successfully'
+        'DELETE /feedback/:id status code 200 (OK)': 
+            (res) => res.status === 200,
+        'DELETE /feedback/:id response has message': 
+            (res) => res.json('message') === 'Feedback deleted successfully'
     });
 };
 
 // DELETE /feedback/:id not found
 const deleteNonExistentFeedback = () => {
-    const response = http.del(`${BASE_URL}/feedback/999`);
+    const response = http.del(`${BASE_URL}/feedback/000`);
 
     check(response, {
-        'DELETE /feedback/:id status code 404 (Not Found)': (res) => res.status === 404,
-        'DELETE /feedback/:id response has error message': (res) => res.json('error') === 'Feedback not found.'
+        'DELETE /feedback/:id status code 404 (Not Found)': 
+            (res) => res.status === 404,
+        'DELETE /feedback/:id response has error message': 
+            (res) => res.json('error') === 'Feedback not found.'
     });
 };
 
 
 export default function () {
-    createFeedback();
+    const id = createFeedback();
     createFeedbackNoData();
     createFeedbackNoTitle();
     createFeedbackNoText();
     createFeedbackInvalidData();
     getAllFeedback();
-    deleteFeedback();
+    deleteFeedback(id);
     deleteNonExistentFeedback();
 }

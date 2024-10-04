@@ -61,6 +61,7 @@ pipeline {
                 echo 'Deploying to kubernetes cluster...'
                 container('kubectl') {
                     sh 'kubectl apply -f kubernetes/api-deployment.yaml'
+                    sh 'kubectl rollout status deployment feedback-app-api --timeout=120s'
                 } 
                 echo 'Deployment successful.'
             }
@@ -78,9 +79,17 @@ pipeline {
             steps {
                 echo 'Running integration tests...'
                 container('k6') {
-                    sh 'k6 run --env BASE_URL=http://feedback-app-api-service:3000 ./tests/feedback-api.integration.js'
+                    script {
+                        // Run the K6 tests and capture the exit code
+                        def k6Result = sh(script: 'k6 run --env BASE_URL=http://feedback-app-api-service:3000 --verbose ./tests/feedback-api.integration.js', returnStatus: true)
+                        
+                        // If the exit code is non-zero, fail the stage
+                        if (k6Result != 0) {
+                            error("Integration tests failed. Check the summary for failed results.")
+                        }
+                    }
                 }
-                echo 'Integration tests ready.'
+                echo 'Integration tests completed.'
             }
         }
     }   
