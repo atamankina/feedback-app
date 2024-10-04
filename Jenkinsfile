@@ -12,14 +12,14 @@ pipeline {
     
     environment {
         GITHUB_REPO = 'https://github.com/atamankina/feedback-app.git'
-        DOCKER_IMAGE = 'galaataman/feedback-app:pipeline-test'
+        DOCKER_IMAGE = 'galaataman/feedback-app:refactoring'
         DOCKER_CREDENTIALS_ID = 'dockerhub-token'
     }
     
     stages {        
         stage('Checkout') {           
             steps {
-                git url: "${GITHUB_REPO}", branch: 'main'
+                git url: "${GITHUB_REPO}", branch: 'refactoring'
             }            
         }       
         stage('Docker Build') {   
