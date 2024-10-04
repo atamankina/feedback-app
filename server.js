@@ -1,20 +1,24 @@
 import express from 'express';
 import cors from 'cors';
-import feedbackRoutes from './routes.js';  // Import der Routen
-import { createTable } from './db.js';     // Import der Datenbanklogik
+import feedbackRoutes from './routes/feedbackRoutes.js';
+import { createTable } from './db.js';
+import { errorHandler } from './middlewares/errorHandler.js';
 
-// Erstellen der Express-App
+// Express-App erstellen
 const app = express();
 const PORT = 3000;
 
-// Setup CORS und JSON-Middleware
+// Setup CORS und JSON-Parsing-Middleware
 app.use(cors());
 app.use(express.json());
 
 // Routen einbinden
 app.use('/', feedbackRoutes);
 
-// Tabelle erstellen
+// Fehlerbehandlungsmiddleware
+app.use(errorHandler);
+
+// Datenbanktabelle erstellen
 createTable();
 
 // Server starten
