@@ -12,28 +12,31 @@ pipeline {
     
     environment {
         GITHUB_REPO = 'https://github.com/atamankina/feedback-app.git'
-        DOCKER_IMAGE = 'galaataman/feedback-app:refactoring'
         DOCKER_CREDENTIALS_ID = 'dockerhub-token'
+        DOCKER_REPO = 'galaataman/feedback-app'
+        IMAGE_TAG = "${BUILD_NUMBER}"
+        DOCKER_IMAGE = "${DOCKER_REPO}:${IMAGE_TAG}"
     }
     
     stages {        
         stage('Checkout') {           
             steps {
+                echo 'Checking out code...'
                 git url: "${GITHUB_REPO}", branch: 'refactoring'
             }            
         }       
         stage('Docker Build') {   
             steps {
-                echo 'Building the app...'
+                echo 'Building the Docker image...'
                 container('docker') {
                     sh 'docker build -t $DOCKER_IMAGE .'
                 }
-                echo 'Build successful.'
+                echo 'Docker build successful.'
             }    
         }
         stage('Docker Push') {
             steps {
-                echo 'Pushing the image to Docker Hub...'
+                echo 'Pushing the Docker image to Docker Hub...'
                 container('docker') {
                     script {
                         docker.withRegistry('', "${DOCKER_CREDENTIALS_ID}") {
@@ -41,12 +44,12 @@ pipeline {
                         }
                     }  
                 }
-                echo 'Push successful.'
+                echo 'Docker image pushed successfully.'
             }
         }
         stage('Kubernetes Deploy Dependencies') {
             steps {
-                echo 'Deploying to kubernetes cluster...'
+                echo 'Deploying API dependencies to kubernetes cluster...'
                 container('kubectl') {
                     sh 'kubectl apply -f kubernetes/secret.yaml'
                     sh 'kubectl apply -f kubernetes/configmap.yaml'
@@ -56,23 +59,33 @@ pipeline {
                 echo 'Deployment successful.'
             }
         }
-        stage('Kubernetes Deploy API') {
+        stage('Delete Previous Deployment') {
             steps {
-                echo 'Deploying to kubernetes cluster...'
+                echo 'Deleting previous Kubernetes deployment...'
                 container('kubectl') {
-                    sh 'kubectl apply -f kubernetes/api-deployment.yaml'
-                    sh 'kubectl rollout status deployment feedback-app-api --timeout=120s'
+                    sh '''
+                        kubectl delete deployment feedback-app-api || true  
+                    '''
                 } 
-                echo 'Deployment successful.'
+                echo 'Previous Kubernetes deployment deleted successfully.'
             }
         }
-        stage('Restart Kubernetes Pods') {
+
+        stage('Create New Deployment') {
             steps {
-                echo 'Restarting Kubernetes pods to pull the new image...'
+                echo 'Creating new Kubernetes deployment...'
                 container('kubectl') {
-                    sh 'kubectl rollout restart deployment feedback-app-api'
-                }
-                echo 'Pods restarted successfully.'
+                    script {
+                        sh '''
+                            sed -i "s|image: galaataman/feedback-app:latest|image: $DOCKER_IMAGE|g" kubernetes/api-deployment.yaml
+                        '''
+                        sh '''
+                            kubectl apply -f kubernetes/api-deployment.yaml
+                            kubectl rollout status deployment feedback-app-api --timeout=300s
+                        '''
+                    }
+                } 
+                echo 'New Kubernetes deployment created successfully.'
             }
         }
         stage('Integration Tests') {
