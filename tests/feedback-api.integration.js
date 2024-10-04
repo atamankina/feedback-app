@@ -1,7 +1,24 @@
 import http from 'k6/http';
 import { check } from 'k6';
+import { Rate } from "k6/metrics";
+
+export let errorRate = new Rate('errors');
 
 const BASE_URL = __ENV.BASE_URL || 'http://localhost:3000';
+
+export let options = {
+    thresholds: {
+        "errors": ["rate==0"],  // Fail if there is at least one error
+    }
+};
+
+// Function to add a check with error rate tracking
+function addCheck(response, checks) {
+    let passed = check(response, checks);
+    if (!passed) {
+        errorRate.add(1);
+    }
+}
 
 // POST /feedback 
 const createFeedback = () => {
@@ -14,7 +31,7 @@ const createFeedback = () => {
 
     const response = http.post(`${BASE_URL}/feedback`, JSON.stringify(payload), { headers });
 
-    check(response, {
+    addCheck(response, {
         'POST /feedback valid data: status code 200 (OK)': 
             (res) => res.status === 200,
         'POST /feedback response has message': 
@@ -37,7 +54,7 @@ const createFeedbackNoData = () => {
 
     const response = http.post(`${BASE_URL}/feedback`, payload, { headers });
 
-    check(response, {
+    addCheck(response, {
         'POST /feedback missing data: status code 400 (Bad Request)': 
             (res) => res.status === 400,
         'POST /feedback error message for missing data': 
@@ -55,7 +72,7 @@ const createFeedbackNoTitle = () => {
 
     const response = http.post(`${BASE_URL}/feedback`, payload, { headers });
 
-    check(response, {
+    addCheck(response, {
         'POST /feedback missing title: status code 400 (Bad Request)': 
             (res) => res.status === 400,
         'POST /feedback error message for missing title': 
@@ -73,7 +90,7 @@ const createFeedbackNoText = () => {
 
     const response = http.post(`${BASE_URL}/feedback`, payload, { headers });
 
-    check(response, {
+    addCheck(response, {
         'POST /feedback missing text: status code 400 (Bad Request)': 
             (res) => res.status === 400,
         'POST /feedback error message for missing text': 
@@ -92,7 +109,7 @@ const createFeedbackInvalidData = () => {
 
     const response = http.post(`${BASE_URL}/feedback`, payload, { headers });
 
-    check(response, {
+    addCheck(response, {
         'POST /feedback invalid data: status code 400 (Bad Request)': 
             (res) => res.status === 400,
         'POST /feedback error message for invalid data': 
@@ -104,7 +121,7 @@ const createFeedbackInvalidData = () => {
 const getAllFeedback = () => {
     const response = http.get(`${BASE_URL}/feedback`);
 
-    check(response, {
+    addCheck(response, {
         'GET /feedback status code 200 (OK)': 
             (res) => res.status === 200,
         'GET /feedback response contains an array': 
@@ -116,7 +133,7 @@ const getAllFeedback = () => {
 const deleteFeedback = (id) => {
     const response = http.del(`${BASE_URL}/feedback/${id}`);
 
-    check(response, {
+    addCheck(response, {
         'DELETE /feedback/:id status code 200 (OK)': 
             (res) => res.status === 200,
         'DELETE /feedback/:id response has message': 
@@ -128,7 +145,7 @@ const deleteFeedback = (id) => {
 const deleteNonExistentFeedback = () => {
     const response = http.del(`${BASE_URL}/feedback/000`);
 
-    check(response, {
+    addCheck(response, {
         'DELETE /feedback/:id status code 404 (Not Found)': 
             (res) => res.status === 404,
         'DELETE /feedback/:id response has error message': 
