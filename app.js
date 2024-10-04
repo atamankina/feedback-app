@@ -43,17 +43,18 @@ createTable();
 
 // POST /feedback - fuegt neues Feedback hinzu
 app.post('/feedback', async (req, res) => {
-    const { title, text } = req.body;
-
-    if (!title || !text ) {
-        return res.status(400).json({ message: "title und text sind im body erforderlich." })
-    }
     
     try {
+        const { title, text } = req.body;
+        if (!title || !text ) {
+            return res.status(400).json({ message: "title und text sind im body erforderlich." })
+        }
+    
         const query = `INSERT INTO feedback (title, text) VALUES ($1, $2);`;
         await pool.query(query, [title, text]);
         res.status(201).json({ message: "Feedback erfolgreich gespeichert."});
     } catch (error) {
+        console.error('Error adding feedback: ', error);
         res.status(500).json({ message: "Fehler beim Speichern des Feedbacks." });
     }
 
@@ -69,6 +70,7 @@ app.get('/feedback', async (req, res) => {
         res.status(200).json(result.rows);
 
     } catch (error) {
+        console.error('Error retrieving feedback: ', error);
         res.status(500).json({ message: "Fehler beim Abrufen des Feedbacks." });
     }
 
@@ -76,9 +78,9 @@ app.get('/feedback', async (req, res) => {
 
 // DELETE /feedback/title - Loescht Feedback mit dem gegebenen title
 app.delete('/feedback/:title', async (req, res) => {
-    const { title } = req.params;
-
     try {
+        const { title } = req.params;
+    
         const query = `DELETE FROM feedback WHERE title = $1;`;
         const result = await pool.query(query, [title]);
 
@@ -89,6 +91,7 @@ app.delete('/feedback/:title', async (req, res) => {
         res.status(200).json({ message: "Feedback erfolgreich geloescht." });
 
     } catch (error) {
+        console.error('Error deleting feedback: ', error);
         res.status(500).json({ message: "Fehler beim Loeschen des Feedbacks." });
     }
 
