@@ -61,14 +61,14 @@ pipeline {
         }
         stage('Kubernetes Deploy App') {
             steps {
-                echo 'Deleting previous Kubernetes deployment...'
+                echo 'Deleting previous App deployment...'
                 container('kubectl') {
                     sh '''
                         kubectl delete deployment feedback-app-api || true  
                     '''
                 } 
-                echo 'Previous Kubernetes deployment deleted successfully.'
-                echo 'Creating new Kubernetes deployment...'
+                echo 'Previous App deployment deleted successfully.'
+                echo 'Creating new App deployment...'
                 container('kubectl') {
                     script {
                         sh '''
@@ -80,18 +80,18 @@ pipeline {
                         '''
                     }
                 } 
-                echo 'New Kubernetes deployment created successfully.'
+                echo 'New App deployment created successfully.'
             }
         }
         stage('Check App Status') {
             steps {
-                echo 'Waiting for the application to become reachable...'
+                echo 'Waiting for the App to become reachable...'
                 container('kubectl') {
                     script {
                         def retries = 30
                         def delay = 10
                         def url = "http://feedback-app-api-service:3000/feedback" 
-                        
+
                         for (int i = 0; i < retries; i++) {
                             def result = sh(script: "curl -s -o /dev/null -w '%{http_code}' $url", returnStatus: true)
                             
@@ -121,8 +121,32 @@ pipeline {
                 container('k6') {
                     sh 'k6 run --env BASE_URL=http://feedback-app-api-service:3000 --verbose ./tests/feedback-api.integration.js'
                 }
-                echo 'Integration tests ready.'
+                echo 'Integration tests completed successfully.'
             }
+        }
+    }
+    post {
+        always {
+            echo 'Post: DockerHub URL...'
+            script {
+                def dockerHubUrl = "https://hub.docker.com/r/${DOCKER_REPO}/tags?name=${IMAGE_TAG}"
+                echo "DockerHub URL for the image: ${dockerHubUrl}"
+                writeFile file: 'dockerhub-url.txt', text: dockerHubUrl
+                archiveArtifacts artifacts: 'dockerhub-url.txt'
+            }
+        }
+
+        success {
+            echo 'Integration tests succeeded, tagging the image with "latest"...'
+            container('docker') {
+                script {
+                    docker.withRegistry('', "${DOCKER_CREDENTIALS_ID}") {
+                        sh "docker tag ${DOCKER_IMAGE} ${DOCKER_REPO}:latest"
+                        sh "docker push ${DOCKER_REPO}:latest"
+                    }
+                }
+            }
+            echo 'Docker image successfully pushed with "latest" tag.'
         }
     }   
 }
