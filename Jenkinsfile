@@ -11,9 +11,11 @@ pipeline {
     }
     
     environment {
-        GITHUB_REPO = 'https://github.com/atamankina/feedback-app.git'
-        DOCKER_IMAGE = 'galaataman/feedback-app:pipeline-test'
+        GITHUB_REPO = 'https://github.com/atamankina/feedback-app.git'        
         DOCKER_CREDENTIALS_ID = 'dockerhub-token'
+        DOCKER_REPO = 'galaataman/feedback-app'
+        IMAGE_TAG = "${BUILD_NUMBER}"
+        DOCKER_IMAGE = "${DOCKER_REPO}:${IMAGE_TAG}"
     }
     
     stages {        
@@ -60,7 +62,10 @@ pipeline {
             steps {
                 echo 'Deploying to kubernetes cluster...'
                 container('kubectl') {
-                    sh 'kubectl apply -f kubernetes/api-deployment.yaml'
+                    script {
+                        sh 'sed -i "s|image: galaataman/feedback-app:latest|image: $DOCKER_IMAGE|g" kubernetes/api-deployment.yaml'
+                        sh 'kubectl apply -f kubernetes/api-deployment.yaml'
+                    }
                 } 
                 echo 'Deployment successful.'
             }
