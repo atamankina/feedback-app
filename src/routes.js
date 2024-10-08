@@ -1,48 +1,10 @@
 import express from 'express';
-import pkg from 'pg';
-import cors from 'cors';
+import { pool } from './db.js';
 
-// Creating the express app
-const app = express();
-const PORT = 3000;
-
-// Setup CORS
-app.use(cors());
-
-// Middleware for parsing JSON
-app.use(express.json());
-
-// Creating a database connection
-const { Pool } = pkg;
-
-const pool = new Pool({
-    user: process.env.DB_USER,
-    host: process.env.DB_HOST,
-    database: process.env.DB_NAME,
-    password: process.env.DB_PASSWORD,
-    port: process.env.DB_PORT
-});
-
-// Creating the feedback table
-const createTable = async () => {
-    try {
-        await pool.query(`
-            CREATE TABLE IF NOT EXISTS feedback (
-                id SERIAL PRIMARY KEY,
-                title VARCHAR(255) NOT NULL,
-                text TEXT NOT NULL
-                );
-            `);
-
-    } catch (error) {
-        console.error('Error creating table: ', error);
-    }
-}
-
-createTable();
+const feedbackRouter = express.Router();
 
 // POST /feedback - fuegt neues Feedback hinzu
-app.post('/feedback', async (req, res) => { 
+feedbackRouter.post('/feedback', async (req, res) => { 
 
     try {
         const { title, text } = req.body;
@@ -61,9 +23,8 @@ app.post('/feedback', async (req, res) => {
 
 });
 
-
 // GET /feedback - gibt alle Feedback Eintraege zurueck
-app.get('/feedback', async (req, res) => {
+feedbackRouter.get('/feedback', async (req, res) => {
 
     try {
         const query = `SELECT * FROM feedback;`;
@@ -78,7 +39,7 @@ app.get('/feedback', async (req, res) => {
 });
 
 // DELETE /feedback/title - Loescht Feedback mit dem gegebenen title
-app.delete('/feedback/:title', async (req, res) => {
+feedbackRouter.delete('/feedback/:title', async (req, res) => {
 
     try {
         const { title } = req.params;
@@ -99,7 +60,6 @@ app.delete('/feedback/:title', async (req, res) => {
 
 });
 
-// Start the app
-app.listen(PORT, ()=> {
-    console.log(`Server laeuft auf http://localhost:${PORT}`);
-});
+export default feedbackRouter;
+
+
