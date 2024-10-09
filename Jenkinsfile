@@ -24,7 +24,19 @@ pipeline {
                 echo 'Checking out code...'
                 git url: "${GITHUB_REPO}", branch: 'refactoring'
             }            
-        }       
+        }
+        stage('Run Unit Tests') {
+            steps {
+                echo 'Running unit tests...'
+                container('node') {
+                    sh '''
+                        npm install
+                        npm test
+                    '''
+                }
+                echo 'Unit tests completed successfully.'
+            }
+        }        
         stage('Docker Build') {   
             steps {
                 echo 'Building the Docker image...'
