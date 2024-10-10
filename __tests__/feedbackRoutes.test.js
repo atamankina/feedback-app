@@ -1,4 +1,3 @@
-// __tests__/feedbackRoutes.test.js
 import request from 'supertest';
 import express from 'express';
 import feedbackRoutes from '../routes/feedbackRoutes';
@@ -14,7 +13,7 @@ const app = express();
 app.use(express.json());
 app.use('/', feedbackRoutes);
 
-describe('Feedback Routes', () => {
+describe('Feedback Routes - Success Cases', () => {
     afterEach(() => {
         jest.clearAllMocks();
     });
@@ -58,5 +57,51 @@ describe('Feedback Routes', () => {
 
         expect(response.status).toBe(404);
         expect(response.body.error).toBe('Feedback not found.');
+    });
+});
+
+describe('Feedback Routes - Error Cases (500)', () => {
+    beforeEach(() => {
+        // Mocking the `sendError` function within the jest.mock() call itself
+        jest.mock('../utils/responseHelper', () => ({
+            sendSuccess: jest.fn(),
+            sendError: jest.fn((res, message) => {
+                res.status(500).json({ error: message });
+            }),
+        }));
+    });
+
+    afterEach(() => {
+        jest.clearAllMocks();
+        jest.resetModules(); // Reset module registry to avoid interference with the next test cases
+    });
+
+    it('POST /feedback - should return 500 if adding feedback fails', async () => {
+        addFeedback.mockRejectedValue(new Error('Database error'));
+
+        const response = await request(app)
+            .post('/feedback')
+            .send({ title: 'Test Feedback', text: 'Test text' });
+
+        expect(response.status).toBe(500);
+        expect(response.body.error).toBe('An error occurred while adding feedback.');
+    });
+
+    it('GET /feedback - should return 500 if retrieving feedback fails', async () => {
+        getAllFeedback.mockRejectedValue(new Error('Database error'));
+
+        const response = await request(app).get('/feedback');
+
+        expect(response.status).toBe(500);
+        expect(response.body.error).toBe('An error occurred while retrieving feedback.');
+    });
+
+    it('DELETE /feedback/:id - should return 500 if deleting feedback fails', async () => {
+        deleteFeedbackById.mockRejectedValue(new Error('Database error'));
+
+        const response = await request(app).delete('/feedback/1');
+
+        expect(response.status).toBe(500);
+        expect(response.body.error).toBe('An error occurred while deleting feedback.');
     });
 });
