@@ -25,11 +25,11 @@ data "aws_ssm_parameter" "db_port" {
 resource "aws_security_group" "rds_postgres_sg" {
     name = "rds-postgres-sg"
     description = "Allow all inbound traffic to postgres db."
-    vpc_id = data.aws_ssm_parameter.vpc_id
+    vpc_id = data.aws_ssm_parameter.vpc_id.value
 
     ingress {
-        from_port = data.aws_ssm_parameter.db_port
-        to_port = data.aws_ssm_parameter.db_port
+        from_port = data.aws_ssm_parameter.db_port.value
+        to_port = data.aws_ssm_parameter.db_port.value
         protocol = "tcp"
         cidr_blocks = ["0.0.0.0/0"]
     }
@@ -45,13 +45,13 @@ resource "aws_security_group" "rds_postgres_sg" {
 data "aws_subnets" "selected_subnets" {
     filter {
       name = "vpc-id"
-      values = [data.aws_ssm_parameter.vpc_id]
+      values = [data.aws_ssm_parameter.vpc_id.value]
     }
 }
 
 resource "aws_db_subnet_group" "rds_subnet_group" {
     name = "rds-subnet-group"
-    subnet_ids = data.aws_subnets.selected_subnets
+    subnet_ids = data.aws_subnets.selected_subnets.ids
 }
 
 resource "aws_db_instance" "feedback_db" {
@@ -61,13 +61,13 @@ resource "aws_db_instance" "feedback_db" {
     instance_class = "db.t3.micro"
     storage_type = "gp3"
     allocated_storage = 20
-    username = data.aws_ssm_parameter.db_username
-    password = data.aws_ssm_parameter.db_password
-    db_name = data.aws_ssm_parameter.db_name
-    port = data.aws_ssm_parameter.db_port
+    username = data.aws_ssm_parameter.db_username.value
+    password = data.aws_ssm_parameter.db_password.value
+    db_name = data.aws_ssm_parameter.db_name.value
+    port = data.aws_ssm_parameter.db_port.value
     parameter_group_name = "default.postgres16"
     publicly_accessible = true
-    vpc_security_group_ids = [ aws_db_subnet_group.rds_subnet_group ]
+    vpc_security_group_ids = [ aws_security_group.rds_postgres_sg.id ]
     db_subnet_group_name = aws_db_subnet_group.rds_subnet_group.name
 
     skip_final_snapshot = true
