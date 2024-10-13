@@ -36,7 +36,37 @@ pipeline {
                 }
                 echo 'Unit tests completed successfully.'
             }
-        }        
+        }
+        stages {
+        stage('Provision RDS with Terraform') {
+            steps {
+                echo 'Initializing and applying Terraform to provision RDS...'
+                container('terraform') {
+                    script {
+                        dir('terraform-rds') {
+                            // Initialize and apply Terraform configuration
+                            sh 'terraform init'
+                            sh 'terraform plan -out=tfplan -input=false'
+                            sh 'terraform apply -input=false tfplan'
+                            
+                            // Get the RDS endpoint output from Terraform
+                            def rdsEndpoint = sh(script: 'terraform output -raw rds_endpoint', returnStdout: true).trim()
+                            echo "RDS Endpoint: ${rdsEndpoint}"
+                            
+                            // Update the Kubernetes ConfigMap with the RDS endpoint
+                            echo 'Updating Kubernetes ConfigMap with RDS endpoint...'
+                            sh """
+                                sed -i 's|DB_HOST:.*|DB_HOST: ${rdsEndpoint}|g' /kubernetes/configmap.yaml
+                            """
+                            
+                            // Verify the updated ConfigMap
+                            sh 'cat /kubernetes/configmap.yaml'
+                        }
+                    }
+                }
+                echo 'RDS provisioned and ConfigMap updated successfully.'
+            }
+        }             
         stage('Docker Build') {   
             steps {
                 echo 'Building the Docker image...'
