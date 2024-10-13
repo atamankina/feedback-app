@@ -37,7 +37,6 @@ pipeline {
                 echo 'Unit tests completed successfully.'
             }
         }
-        stages {
         stage('Provision RDS with Terraform') {
             steps {
                 echo 'Initializing and applying Terraform to provision RDS...'
@@ -66,7 +65,7 @@ pipeline {
                 }
                 echo 'RDS provisioned and ConfigMap updated successfully.'
             }
-        }             
+        }        
         stage('Docker Build') {   
             steps {
                 echo 'Building the Docker image...'
@@ -191,5 +190,4 @@ pipeline {
             echo 'Docker image successfully pushed with "latest" tag.'
         }
     }   
-}
 }
