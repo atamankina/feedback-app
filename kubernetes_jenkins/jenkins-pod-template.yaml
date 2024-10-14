@@ -75,12 +75,12 @@ spec:
     tty: true
     volumeMounts:
     - name: workspace-volume
-      mountPath: /workspace  
+      mountPath: /home/jenkins/agent
 
   volumes:
   - hostPath:
       path: /var/run/docker.sock
     name: docker-socket
 
-  - emptyDir: {}  
+  - emptyDir: {}
     name: workspace-volume
