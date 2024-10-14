@@ -2,14 +2,14 @@ terraform {
   required_providers {
     aws = {
       source  = "hashicorp/aws"
-      version = "~> 5.71.0"  # Use the required provider version here
+      version = "~> 5.71.0"
     }
   }
 
   backend "s3" {
-    bucket         = "terraform-state-feedback-api-313584844478"  # Use your account ID here
+    bucket         = "terraform-state-feedback-api-313584844478"
     key            = "terraform/feedback-api/terraform.tfstate"
-    region         = "eu-central-1"  # Specify your AWS region
+    region         = "eu-central-1"
     encrypt        = true
   }
 }
@@ -92,10 +92,10 @@ resource "aws_db_instance" "feedback_db" {
 resource "aws_ssm_parameter" "rds_endpoint" {
     name = "/feedback-app/backend/test/db-host"
     type = "String"
-    value = aws_db_instance.feedback_db.endpoint
+    value = regex("(.*):[0-9]+", aws_db_instance.feedback_db.endpoint)  # Extract only the URL without port
 }
 
 output "rds_endpoint" {
-    description = "The endpoint of the RDS Postgres database."
-    value = aws_db_instance.feedback_db.endpoint
+    description = "The endpoint of the RDS Postgres database without the port."
+    value = regex("(.*):[0-9]+", aws_db_instance.feedback_db.endpoint)
 }
