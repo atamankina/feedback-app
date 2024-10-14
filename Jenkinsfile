@@ -37,7 +37,7 @@ pipeline {
                 echo 'Unit tests completed successfully.'
             }
         }
-        stage('Initialize Terraform') {
+        stage('Terraform Init') {
             steps {
                 echo 'Initializing Terraform...'
                 container('terraform') {
@@ -50,8 +50,7 @@ pipeline {
                 }
             }
         }
-
-        stage('Plan Terraform Execution') {
+        stage('Terraform Plan') {
             steps {
                 echo 'Planning Terraform execution...'
                 container('terraform') {
@@ -63,8 +62,7 @@ pipeline {
                 }
             }
         }
-
-        stage('Apply Terraform Configuration') {
+        stage('Terraform Apply') {
             steps {
                 echo 'Applying Terraform configuration...'
                 container('terraform') {
@@ -76,7 +74,6 @@ pipeline {
                 }
             }
         }
-
         stage('Retrieve RDS Endpoint') {
             steps {
                 echo 'Retrieving the RDS endpoint...'
@@ -89,11 +86,6 @@ pipeline {
                         }
                     }
                 }
-            }
-        }
-
-        stage('Update Kubernetes ConfigMap') {
-            steps {
                 echo 'Updating Kubernetes ConfigMap with RDS endpoint...'
                 container('kubectl') {
                     script {
@@ -104,7 +96,7 @@ pipeline {
                     }
                 }
             }
-        }       
+        }   
         stage('Docker Build') {   
             steps {
                 echo 'Building the Docker image...'
