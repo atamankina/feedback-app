@@ -92,10 +92,10 @@ resource "aws_db_instance" "feedback_db" {
 resource "aws_ssm_parameter" "rds_endpoint" {
     name = "/feedback-app/backend/test/db-host"
     type = "String"
-    value = regexreplace(aws_db_instance.feedback_db.endpoint, ":[0-9]+$", "")  
+    value = replace(aws_db_instance.feedback_db.endpoint, ":5432", "")  # Adjust the port number if needed
 }
 
 output "rds_endpoint" {
     description = "The endpoint of the RDS Postgres database without the port."
-    value = regexreplace(aws_db_instance.feedback_db.endpoint, ":[0-9]+$", "")
+    value = replace(aws_db_instance.feedback_db.endpoint, ":5432", "")  # Adjust the port number if needed
 }
