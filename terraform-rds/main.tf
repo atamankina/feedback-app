@@ -5,6 +5,13 @@ terraform {
       version = "~> 5.71.0"  # Use the required provider version here
     }
   }
+
+  backend "s3" {
+    bucket         = "terraform-state-feedback-api-313584844478"  # Use your account ID here
+    key            = "terraform/feedback-api/terraform.tfstate"
+    region         = "eu-central-1"  # Specify your AWS region
+    encrypt        = true
+  }
 }
 
 provider "aws" {
