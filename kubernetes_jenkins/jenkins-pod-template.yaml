@@ -21,6 +21,7 @@ spec:
     volumeMounts:
     - name: docker-socket
       mountPath: /var/run/docker.sock
+
   - name: kubectl
     image: galaataman/kubectl:latest
     resources:
@@ -33,6 +34,7 @@ spec:
     command:
     - cat
     tty: true
+
   - name: k6
     image: galaataman/k6:latest
     resources:
@@ -45,6 +47,7 @@ spec:
     command:
     - cat
     tty: true
+
   - name: node
     image: node:latest
     resources:
@@ -57,6 +60,7 @@ spec:
     command:
     - cat
     tty: true
+
   - name: terraform
     image: hashicorp/terraform:latest
     resources:
@@ -69,7 +73,14 @@ spec:
     command:
     - cat
     tty: true
+    volumeMounts:
+    - name: workspace-volume
+      mountPath: /workspace  
+
   volumes:
   - hostPath:
       path: /var/run/docker.sock
     name: docker-socket
+
+  - emptyDir: {}  
+    name: workspace-volume
