@@ -65,11 +65,11 @@ spec:
     image: hashicorp/terraform:latest
     resources:
       requests:
-        memory: "512Mi"
-        cpu: "500m"
+        memory: "128Mi"
+        cpu: "250m"
       limits:
-        memory: "1Gi"
-        cpu: "1000m"
+        memory: "128Mi"
+        cpu: "250m"
     command:
     - cat
     tty: true
