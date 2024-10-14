@@ -46,7 +46,7 @@ pipeline {
                             // Initialize and apply Terraform configuration
                             sh 'rm -rf .terraform .terraform.lock.hcl'
                             sh 'terraform init'
-                            sh 'terraform plan -out=tfplan -input=false'
+                            sh 'TF_LOG=DEBUG terraform plan -out=tfplan -input=false'
                             sh 'terraform apply -input=false tfplan'
                             
                             // Get the RDS endpoint output from Terraform
