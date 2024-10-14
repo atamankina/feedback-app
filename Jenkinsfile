@@ -57,7 +57,7 @@ pipeline {
                 container('terraform') {
                     script {
                         dir('terraform-rds') {
-                            sh 'TF_LOG=DEBUG terraform plan -out=tfplan -input=false'
+                            sh 'terraform plan -out=tfplan -input=false'
                         }
                     }
                 }
@@ -85,7 +85,6 @@ pipeline {
                         dir('terraform-rds') {
                             def rdsEndpoint = sh(script: 'terraform output -raw rds_endpoint', returnStdout: true).trim()
                             echo "RDS Endpoint: ${rdsEndpoint}"
-                            // Store the endpoint in the environment for the next stages
                             env.RDS_ENDPOINT = rdsEndpoint
                         }
                     }
@@ -99,9 +98,9 @@ pipeline {
                 container('kubectl') {
                     script {
                         sh """
-                            sed -i 's|DB_HOST:.*|DB_HOST: ${env.RDS_ENDPOINT}|g' /kubernetes/configmap.yaml
+                            sed -i 's|DB_HOST:.*|DB_HOST: ${env.RDS_ENDPOINT}|g' ./kubernetes/configmap.yaml
                         """
-                        sh 'cat /kubernetes/configmap.yaml'
+                        sh 'cat ./kubernetes/configmap.yaml'
                     }
                 }
             }
