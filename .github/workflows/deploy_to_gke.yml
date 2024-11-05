@@ -65,7 +65,7 @@ jobs:
           cd kubernetes_gke
           
           # Update the image in the deployment YAML file to use the latest tag
-          sed -i "s|image: .*|image: ${DOCKER_TAG}|g" 3_api-deployment.yaml
+          sed -i "s|image: .*|image: $DOCKER_TAG|g" 3_api-deployment.yaml
 
           # Apply the updated Kubernetes manifests
           kubectl apply -f .
