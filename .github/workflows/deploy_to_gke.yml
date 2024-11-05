@@ -10,7 +10,7 @@ env:
   GKE_CLUSTER: 'autopilot-cluster-2'
   GKE_ZONE: 'europe-west10'
   DEPLOYMENT_NAME: 'feedback-app'
-  DOCKER_REPO: 'atamankina'
+  DOCKER_REPO: 'galaataman'
   DOCKER_IMAGE: 'feedback-app'
   WORKLOAD_IDENTITY_PROVIDER: 'projects/363005759630/locations/global/workloadIdentityPools/github/providers/my-repo'
   SERVICE_ACCOUNT_EMAIL: 'github-gke-deployer@flawless-psyche-440013-d0.iam.gserviceaccount.com'
