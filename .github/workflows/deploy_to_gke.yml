@@ -8,7 +8,7 @@ on:
 
 env:
   GKE_CLUSTER: 'autopilot-cluster-2'
-  GKE_ZONE: 'europe-west10-a'
+  GKE_ZONE: 'europe-west10'
   DEPLOYMENT_NAME: 'feedback-app'
   DOCKER_REPO: 'atamankina'
   DOCKER_IMAGE: 'feedback-app'
