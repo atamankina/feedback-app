@@ -32,7 +32,7 @@ spec:
     spec:
       containers:
       - name: feedback-app-backend-api
-        image: kuigan/feedback-app:latest
+        image: galaataman/feedback-app:latest
         resources:
           requests:
             memory: "64Mi"

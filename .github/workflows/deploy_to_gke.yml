@@ -50,7 +50,7 @@ jobs:
 
       - name: 'Build and push Docker container'
         run: |-
-          DOCKER_TAG="${{ env.DOCKER_REPO }}/${{ env.DOCKER_IMAGE }}:latest"
+          DOCKER_TAG="${{ env.DOCKER_REPO }}/${{ env.DOCKER_IMAGE }}:${GITHUB_SHA}"
 
           docker build \
             --tag "${DOCKER_TAG}" \
@@ -60,21 +60,14 @@ jobs:
 
           docker push "${DOCKER_TAG}"
 
-      - name: 'Set up Kustomize'
-        run: |-
-          curl -sLo kustomize.tar.gz https://github.com/kubernetes-sigs/kustomize/releases/download/kustomize%2Fv5.4.3/kustomize_v5.4.3_linux_amd64.tar.gz
-          tar -zxvf kustomize.tar.gz
-          chmod +x kustomize
-          sudo mv kustomize /usr/local/bin/
-
       - name: 'Deploy to GKE'
         run: |-
           cd kubernetes_gke
           
-          # Update image tag in kustomize
-          kustomize edit set image ${{ env.DOCKER_REPO }}/${{ env.DOCKER_IMAGE }}=${DOCKER_TAG}
+          # Update the image in the deployment YAML file to use the latest tag
+          sed -i "s|image: .*$|image: ${DOCKER_TAG}|" 3_api-deployment.yaml
 
-          # Build and apply the Kubernetes manifests
-          kustomize build . | kubectl apply -f -
+          # Apply the updated Kubernetes manifests
+          kubectl apply -f .
           kubectl rollout status deployment/${{ env.DEPLOYMENT_NAME }}
           kubectl get services -o wide
