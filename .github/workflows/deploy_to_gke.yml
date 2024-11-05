@@ -9,7 +9,7 @@ on:
 env:
   GKE_CLUSTER: 'autopilot-cluster-2'
   GKE_ZONE: 'europe-west10'
-  DEPLOYMENT_NAME: 'feedback-app'
+  DEPLOYMENT_NAME: 'feedback-app-api'
   DOCKER_REPO: 'galaataman'
   DOCKER_IMAGE: 'feedback-app'
   WORKLOAD_IDENTITY_PROVIDER: 'projects/363005759630/locations/global/workloadIdentityPools/github/providers/my-repo'
@@ -71,5 +71,5 @@ jobs:
 
           # Apply the updated Kubernetes manifests
           kubectl apply -f .
-          kubectl rollout status deployment/${{ env.DEPLOYMENT_NAME }}
+          kubectl rollout status deployment/${{ env.DEPLOYMENT_NAME }} --namespace feedback-app
           kubectl get services -o wide --namespace feedback-app
