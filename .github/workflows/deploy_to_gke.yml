@@ -72,4 +72,4 @@ jobs:
           # Apply the updated Kubernetes manifests
           kubectl apply -f .
           kubectl rollout status deployment/${{ env.DEPLOYMENT_NAME }}
-          kubectl get services -o wide
+          kubectl get services -o wide --namespace feedback-app
